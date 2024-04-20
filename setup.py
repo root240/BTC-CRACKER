@@ -30,4 +30,4 @@ with open('positive_balances.txt', 'a') as file:
             file.write(f'{pr}    {adr}    {balance}\n')
 
         # Print the private key, address, and balance
-        print(pr, '    ', adr, balance)
+        print(pr, '    ', adr, 'BTC = ',balance)
