@@ -1,2 +1,3 @@
-pip install bitcoin 
-pip install requests
+bitcoin 
+requests
+colorama
