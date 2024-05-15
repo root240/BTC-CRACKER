@@ -21,7 +21,7 @@ Save positive balances: If the wallet balance is greater than zero, the script w
  Python 3 or higher is required
  `pip install bitcoin`
 `pip install requests`
-
+`pip install colorama`
 
 ### HOW TO USE
 
