@@ -1,5 +1,10 @@
+import time
 from bitcoin import *
 import requests
+import colorama
+
+# Initialize colorama
+colorama.init()
 
 # Function to generate a random private key and corresponding address
 def generate_address():
@@ -19,15 +24,16 @@ TOKEN = 'your_api_token_here'
 
 # Open a file in append mode
 with open('positive_balances.txt', 'a') as file:
-    # Infinite loop - you might want to add a condition to stop the loop
     while True:
-        pr, adr = generate_address()
-        balance = get_balance(adr, TOKEN)
-        
-        # Check if the balance is greater than 0
-        if balance > 0:
-            # Write the private key, address, and balance to the file
-            file.write(f'{pr}    {adr}    {balance}\n')
+        try:
+            pr, adr = generate_address()
+            balance = get_balance(adr, TOKEN)
+            if balance > 0:
+                file.write(f'{pr}    {adr}    {balance}\n')
+            print(colorama.Fore.BLUE + pr, '    ', colorama.Fore.GREEN + adr, 'BTC = ', balance)
+        except Exception as e:
+            print("An error occurred:", e)
+            time.sleep(5)  # Wait for 5 seconds before retrying
 
-        # Print the private key, address, and balance
-        print(pr, '    ', adr, 'BTC = ',balance)
+# Reset colorama settings
+colorama.deinit()
