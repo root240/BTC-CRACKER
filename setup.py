@@ -1,3 +1,4 @@
+import concurrent.futures
 import time
 from bitcoin import *
 import requests
@@ -22,18 +23,22 @@ def get_balance(address, token):
 # Your API token
 TOKEN = 'your_api_token_here'
 
-# Open a file in append mode
-with open('positive_balances.txt', 'a') as file:
-    while True:
-        try:
-            pr, adr = generate_address()
-            balance = get_balance(adr, TOKEN)
-            if balance > 0:
+def process_address():
+    try:
+        pr, adr = generate_address()
+        balance = get_balance(adr, TOKEN)
+        if balance > 0:
+            with open('positive_balances.txt', 'a') as file:
                 file.write(f'{pr}    {adr}    {balance}\n')
-            print(colorama.Fore.BLUE + pr, '    ', colorama.Fore.GREEN + adr, 'BTC = ', balance)
-        except Exception as e:
-            print("An error occurred:", e)
-            time.sleep(5)  # Wait for 5 seconds before retrying
+        print(colorama.Fore.BLUE + pr, '    ', colorama.Fore.GREEN + adr, 'BTC = ', balance)
+    except Exception as e:
+        print("An error occurred:", e)
+
+# Open a ThreadPoolExecutor with a maximum of 10 threads
+with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
+    while True:
+        executor.submit(process_address)
+        time.sleep(0.1)  # Adjust sleep time as needed
 
 # Reset colorama settings
 colorama.deinit()
