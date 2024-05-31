@@ -1,44 +1,76 @@
-import concurrent.futures
-import time
-from bitcoin import *
+import os
+import random
 import requests
-import colorama
+from bitcoin import *
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from colorama import Fore, Style, init
+from tqdm import tqdm
+import logging
+import time
 
 # Initialize colorama
-colorama.init()
+init(autoreset=True)
 
-# Function to generate a random private key and corresponding address
-def generate_address():
-    private_key = random_key()
-    address = privkey_to_address(private_key)
-    return private_key, address
+# Logging settings
+logging.basicConfig(level=logging.INFO, filename='bitcoin_check.log', filemode='a',
+                    format='%(asctime)s - %(levelname)s - %(message)s')
 
-# Function to get the balance of a Bitcoin address
-def get_balance(address, token):
-    url = f'https://api.blockcypher.com/v1/btc/main/addrs/{address}/balance?token={token}'
+# Randomly generate a Bitcoin private key
+def generate_private_key():
+    return random_key()
+
+# Convert private key to bitcoin address
+def private_key_to_address(private_key):
+    public_key = privtopub(private_key)
+    address = pubtoaddr(public_key)
+    return address
+
+# Address inventory check using BlockCypher API
+def check_balance(address, token):
+    url = f"https://api.blockcypher.com/v1/btc/main/addrs/{address}/balance?token={token}"
     response = requests.get(url)
-    data = response.json()
-    return data.get('final_balance', 0)
+    if response.status_code == 200:
+        balance_data = response.json()
+        return balance_data['final_balance']
+    else:
+        logging.error(f"Error checking balance for address {address}: {response.status_code}")
+        return 0
 
-# Your API token
-TOKEN = 'your_api_token_here'
+# Save addresses that have inventory in a .txt file
+def save_address_to_file(address, balance, filename="bitcoin_addresses.txt"):
+    with open(filename, "a") as file:
+        file.write(f"Address: {address}, Balance: {balance} satoshis\n")
 
-def process_address():
-    try:
-        pr, adr = generate_address()
-        balance = get_balance(adr, TOKEN)
-        if balance > 0:
-            with open('positive_balances.txt', 'a') as file:
-                file.write(f'{pr}    {adr}    {balance}\n')
-        print(colorama.Fore.BLUE + pr, '    ', colorama.Fore.GREEN + adr, 'BTC = ', balance)
-    except Exception as e:
-        print("An error occurred:", e)
+# Enter your BlockCypher token here
+blockcypher_token = "YOUR_BLOCKCYPHER_API_TOKEN"
 
-# Open a ThreadPoolExecutor with a maximum of 10 threads
-with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
-    while True:
-        executor.submit(process_address)
-        time.sleep(0.1)  # Adjust sleep time as needed
+# The number of private keys you want to generate
+num_keys_to_generate = 1000000000
 
-# Reset colorama settings
-colorama.deinit()
+def process_key():
+    private_key = generate_private_key()
+    address = private_key_to_address(private_key)
+    balance = check_balance(address, blockcypher_token)
+    
+    # Output the private key, address, and balance with color
+    balance_btc = balance / 1e8  # Convert Satoshi to Bitcoin
+    print(f"{Fore.BLUE}{private_key} -> {Fore.GREEN}{address} {Fore.YELLOW}(Balance: {balance_btc} BTC)")
+    logging.info(f"Generated address: {address} with private key: {private_key} and balance: {balance_btc} BTC")
+    
+    if balance > 0:
+        save_address_to_file(address, balance)
+        print(f"{Fore.RED}Address with balance found: {address} - Balance: {balance_btc} BTC")
+        logging.info(f"Address with balance found: {address} - Balance: {balance_btc} BTC")
+
+# Using ThreadPoolExecutor for parallelization
+with ThreadPoolExecutor(max_workers=10) as executor:
+    futures = [executor.submit(process_key) for _ in range(num_keys_to_generate)]
+    with tqdm(total=num_keys_to_generate, desc="Processing keys", unit=" key") as pbar:
+        while True:
+            finished = sum(future.done() for future in futures)
+            pbar.update(finished - pbar.n)
+            time.sleep(5)  # The status is updated every 5 seconds
+            if all(future.done() for future in futures):
+                break
+
+print("Finished checking addresses.")
