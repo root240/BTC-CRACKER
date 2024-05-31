@@ -1,27 +1,15 @@
 ### BTC CRACKER
 
-Here is a more detailed breakdown of the script's steps:
+This script randomly generates a private key, then converts it to a bitcoin address and checks its balance. If the wallet has balance, it saves the private key along with the address and balance in a .txt file. It is recommended to use high-speed internet for better results.    
 
-Generate a private key: The script uses a cryptographically secure random number generator to generate a 256-bit hexadecimal private key. This private key is essential for accessing the corresponding Bitcoin wallet.
+![Screenshot 2024-05-31 030759](https://github.com/root240/BTC-CRACKER/assets/71753462/b59a301f-e123-4969-8b9e-34d2082e137d)
 
-Convert private key to public key: The generated private key is then used to derive the corresponding public key. The public key is used to receive Bitcoin transactions and is shared with others to allow them to send Bitcoin to the wallet.
-
-Check wallet balance: The script uses the public key and the wallet's API to query the blockchain and retrieve the current balance of the wallet. The API response contains the balance in Bitcoin units.
-
-Print results: The script prints the following information to the console:
-
-Private key: The hexadecimal representation of the generated private key
-Public key: The hexadecimal representation of the derived public key
-Balance: The current balance of the wallet in Bitcoin units
-Save positive balances: If the wallet balance is greater than zero, the script writes the following information to a file called positive_balances.txt;
 
 
 ### Requirements
 
  Python 3 or higher is required
- `pip install bitcoin`
-`pip install requests`
-`pip install colorama`
+ `pip install -r requirements.txt`
 
 ### HOW TO USE
 
