@@ -1,3 +1,4 @@
 bitcoin 
 requests
 colorama
+tqdm
