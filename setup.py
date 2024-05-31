@@ -58,9 +58,11 @@ def process_key():
     logging.info(f"Generated address: {address} with private key: {private_key} and balance: {balance_btc} BTC")
     
     if balance > 0:
-        save_address_to_file(address, balance)
+        save_address_to_file(address, balance, filename="balance.txt")
         print(f"{Fore.RED}Address with balance found: {address} - Balance: {balance_btc} BTC")
         logging.info(f"Address with balance found: {address} - Balance: {balance_btc} BTC")
+    else:
+        save_address_to_file(address, balance)
 
 # Using ThreadPoolExecutor for parallelization
 with ThreadPoolExecutor(max_workers=10) as executor:
